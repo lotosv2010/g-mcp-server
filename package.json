@@ -1,0 +1,28 @@
+{
+  "name": "ts-mcp-demo",
+  "version": "1.0.0",
+  "description": "MCP server with calculator and weather tools, supporting stdio and HTTP",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "http": "tsx src/index.ts --http",
+    "streamable": "tsx src/index.ts --streamable",
+    "inspect": "npx @modelcontextprotocol/inspector tsx src/index.ts"
+  },
+  "keywords": ["mcp", "hono", "typescript"],
+  "license": "MIT",
+  "dependencies": {
+    "@hono/node-server": "^1.19.11",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "hono": "^4.12.9",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
+  }
+}

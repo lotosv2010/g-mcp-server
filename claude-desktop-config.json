@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "calculator-weather": {
+      "command": "node",
+      "args": [
+        "D:\\AI\\ts-mcp-demo\\dist\\index.js"
+      ],
+      "description": "Calculator and Weather MCP Server"
+    }
+  }
+}
