@@ -55,8 +55,8 @@ export class StreamableHTTPServer {
     });
 
     server.listen(this.port, () => {
-      console.log(`🚀 MCP Streamable HTTP Server running at http://localhost:${this.port}`);
-      console.log(`📡 MCP endpoint: http://localhost:${this.port}/mcp\n`);
+      console.error(`MCP Streamable HTTP Server running at http://localhost:${this.port}`);
+      console.error(`MCP endpoint: http://localhost:${this.port}/mcp\n`);
     });
 
     return server;
@@ -70,7 +70,7 @@ export class StreamableHTTPServer {
     transport.onclose = () => {
       if (transport.sessionId) {
         this.sessions.delete(transport.sessionId);
-        console.log(`❌ Session closed: ${transport.sessionId}`);
+        console.error(`Session closed: ${transport.sessionId}`);
       }
     };
 
@@ -80,7 +80,7 @@ export class StreamableHTTPServer {
 
     if (transport.sessionId) {
       this.sessions.set(transport.sessionId, transport);
-      console.log(`📡 New session: ${transport.sessionId}`);
+      console.error(`New session: ${transport.sessionId}`);
     }
   }
 }
