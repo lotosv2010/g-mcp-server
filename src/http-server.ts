@@ -1,5 +1,5 @@
 import { Hono } from 'hono';
-import { calculator, calculatorSchema, getWeather, weatherSchema } from './tools.js';
+import { calculator, calculatorSchema, getWeather, weatherSchema } from './tools';
 
 export class HTTPServer {
   private app: Hono;

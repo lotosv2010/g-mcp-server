@@ -1,6 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import { calculator, calculatorSchema, getWeather, weatherSchema } from './tools.js';
+import { calculator, calculatorSchema, getWeather, weatherSchema } from './tools';
 
 export class MCPServer {
   private server: McpServer;

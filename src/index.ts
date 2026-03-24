@@ -1,7 +1,7 @@
 #!/usr/bin/env node
-import { MCPServer } from './mcp-server.js';
-import { HTTPServer } from './http-server.js';
-import { StreamableHTTPServer } from './streamable-server.js';
+import { MCPServer } from './mcp-server';
+import { HTTPServer } from './http-server';
+import { StreamableHTTPServer } from './streamable-server';
 import { serve } from '@hono/node-server';
 
 // 解析命令行参数

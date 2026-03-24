@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import { createServer } from 'http';
-import { MCPServer } from './mcp-server.js';
+import { MCPServer } from './mcp-server';
 import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
 
 export class StreamableHTTPServer {
