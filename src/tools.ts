@@ -35,8 +35,7 @@ export function calculator(params: z.infer<typeof calculatorSchema>) {
 export function getWeather(params: z.infer<typeof weatherSchema>) {
   const { city } = params;
 
-  // 模拟天气数据
-  const mockWeatherData: Record<string, any> = {
+  const mockWeatherData: Record<string, { temperature: number; condition: string; humidity: number; wind: string }> = {
     '北京': { temperature: 15, condition: '☀️ 晴天', humidity: 45, wind: '东北风3级' },
     '上海': { temperature: 20, condition: '⛅ 多云', humidity: 65, wind: '东南风2级' },
     '广州': { temperature: 28, condition: '☁️ 阴天', humidity: 75, wind: '南风4级' },

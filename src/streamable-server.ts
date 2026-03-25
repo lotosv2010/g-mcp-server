@@ -1,86 +1,67 @@
 import { randomUUID } from 'crypto';
-import { createServer } from 'http';
+import { Hono } from 'hono';
+import { cors } from 'hono/cors';
+import { serve } from '@hono/node-server';
 import { MCPServer } from './mcp-server';
-import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 
 export class StreamableHTTPServer {
   private port: number;
-  private sessions = new Map<string, StreamableHTTPServerTransport>();
+  private sessions = new Map<string, WebStandardStreamableHTTPServerTransport>();
 
   constructor(port: number = 3000) {
     this.port = port;
   }
 
   async start() {
-    const server = createServer(async (req, res) => {
-      res.setHeader('Access-Control-Allow-Origin', '*');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS');
-      res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Mcp-Session-Id');
-      res.setHeader('Access-Control-Expose-Headers', 'Mcp-Session-Id');
+    const app = new Hono();
 
-      if (req.method === 'OPTIONS') {
-        res.writeHead(200);
-        res.end();
-        return;
+    app.use('*', cors({
+      origin: '*',
+      allowMethods: ['GET', 'POST', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'mcp-session-id', 'Last-Event-ID', 'mcp-protocol-version'],
+      exposeHeaders: ['mcp-session-id', 'mcp-protocol-version'],
+    }));
+
+    app.get('/health', (c) => c.json({ status: 'ok', sessions: this.sessions.size }));
+
+    app.all('/mcp', async (c) => {
+      const sessionId = c.req.header('mcp-session-id');
+
+      // 已有会话
+      if (sessionId && this.sessions.has(sessionId)) {
+        return this.sessions.get(sessionId)!.handleRequest(c.req.raw);
       }
 
-      if (req.url === '/health' && req.method === 'GET') {
-        res.writeHead(200, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ status: 'ok', sessions: this.sessions.size }));
-        return;
+      // 新会话（POST 初始化）
+      if (c.req.method === 'POST') {
+        return this.createSession(c.req.raw);
       }
 
-      if (req.url === '/mcp') {
-        const sessionId = req.headers['mcp-session-id'] as string | undefined;
-
-        // 已有会话
-        if (sessionId && this.sessions.has(sessionId)) {
-          await this.sessions.get(sessionId)!.handleRequest(req, res);
-          return;
-        }
-
-        // 新会话（只接受 POST 初始化请求）
-        if (req.method === 'POST') {
-          await this.createSession(req, res);
-          return;
-        }
-
-        res.writeHead(400, { 'Content-Type': 'application/json' });
-        res.end(JSON.stringify({ error: 'Bad Request: No valid session' }));
-        return;
-      }
-
-      res.writeHead(404, { 'Content-Type': 'application/json' });
-      res.end(JSON.stringify({ error: 'Not found' }));
+      return c.json({ error: 'Bad Request: No valid session' }, 400);
     });
 
-    server.listen(this.port, () => {
-      console.error(`MCP Streamable HTTP Server running at http://localhost:${this.port}`);
-      console.error(`MCP endpoint: http://localhost:${this.port}/mcp\n`);
-    });
+    serve({ fetch: app.fetch, port: this.port });
 
-    return server;
+    console.error(`MCP Streamable HTTP Server running at http://localhost:${this.port}`);
+    console.error(`MCP endpoint: http://localhost:${this.port}/mcp\n`);
   }
 
-  private async createSession(req: import('http').IncomingMessage, res: import('http').ServerResponse) {
-    const transport = new StreamableHTTPServerTransport({
+  private async createSession(req: Request): Promise<Response> {
+    const transport = new WebStandardStreamableHTTPServerTransport({
       sessionIdGenerator: () => randomUUID(),
+      onsessioninitialized: (sessionId) => {
+        this.sessions.set(sessionId, transport);
+        console.error(`New session: ${sessionId}`);
+      },
+      onsessionclosed: (sessionId) => {
+        this.sessions.delete(sessionId);
+        console.error(`Session closed: ${sessionId}`);
+      },
     });
 
-    transport.onclose = () => {
-      if (transport.sessionId) {
-        this.sessions.delete(transport.sessionId);
-        console.error(`Session closed: ${transport.sessionId}`);
-      }
-    };
-
     const mcpServer = new MCPServer();
-    await mcpServer.getServer().connect(transport);
-    await transport.handleRequest(req, res);
-
-    if (transport.sessionId) {
-      this.sessions.set(transport.sessionId, transport);
-      console.error(`New session: ${transport.sessionId}`);
-    }
+    await mcpServer.connect(transport);
+    return transport.handleRequest(req);
   }
 }

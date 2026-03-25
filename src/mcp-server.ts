@@ -1,5 +1,6 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import { calculator, calculatorSchema, getWeather, weatherSchema } from './tools';
 
 export class MCPServer {
@@ -45,8 +46,7 @@ export class MCPServer {
     console.error('MCP Server running on stdio');
   }
 
-  // 获取 server 实例（用于 HTTP 传输）
-  getServer() {
-    return this.server;
+  async connect(transport: Transport) {
+    await this.server.connect(transport);
   }
 }
